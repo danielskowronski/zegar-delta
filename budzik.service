@@ -1,0 +1,10 @@
+[Unit]
+Description=Budzik - zegar-delta
+
+[Service]
+Type=simple
+ExecStart=/opt/budzik/budzik-worker.rb
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

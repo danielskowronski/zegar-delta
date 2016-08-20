@@ -28,5 +28,9 @@ def read_pincode(pin="1924")
   return true
 end
 
-read_pincode
+#read_pincode
 #puts l.next.to_s while true
+while true
+  puts $l.to_s
+  sleep 1
+end
