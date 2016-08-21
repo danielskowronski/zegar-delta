@@ -30,6 +30,10 @@
     textarea {
       width: 100%;
     }
+
+    .dows, .time, .date, .controls { display: inline-block; }
+    .time input { width: 3em;}
+    .date input { width: 6em;}
   </style>
   <script>
   var alarms = {
@@ -52,12 +56,52 @@
 
   <div id="alarms-regular" class="alarm-section">
     <h3>regular alarms</h3>
+    <div class="alarm-entry weekly-rule" data-type="regular" data-id="1">
+      <div class="controls">
+        <button class="pure-button pure-button-primary">del</button>
+      </div>
+      <div class="dows">
+        days of week: &nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="1">monday</input>&nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="2">tuesday</input>&nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="3">wednesday</input>&nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="4">thursday</input>&nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="5">friday</input>&nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="6">saturday</input>&nbsp;
+        <input type="checkbox" data-field="dow" name="dow" value="7">sunday</input>&nbsp;
+      </div>
+      <div class="time">
+        time: <input type="text" data-field="time" value="4:35" />
+      </div>
+    </div>
   </div>
   <div id="alarms-special" class="alarm-section">
     <h3>special alarms</h3>
+    <div class="alarm-entry special-rule" data-type="special" data-id="1">
+      <div class="controls">
+        <button class="pure-button pure-button-primary">del</button>
+      </div>
+      <div class="date">
+        date: <input type="date" data-field="date" value="2016-08-20" />
+      </div>
+      <div class="time">
+        time: <input type="text" data-field="time" value="4:35" />
+      </div>
+    </div>
   </div>
   <div id="alarms-exceptions" class="alarm-section">
     <h3>alarms exceptions</h3>
+    <div class="alarm-entry exception-rule" data-type="exception" data-id="1">
+      <div class="controls">
+        <button class="pure-button pure-button-primary">del</button>
+      </div>
+      <div class="date">
+        date: <input type="date" data-field="date" value="2016-08-21" />
+      </div>
+      <div class="time">
+        time: <input type="text" data-field="time" value="4:35" />
+      </div>
+    </div>
   </div>
 
   <div id="alarms-submit" class="alarm-section">
@@ -78,6 +122,11 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script>
+$(function() {
+
+});
+</script>
 <script>
 (function (window, document) {
 
