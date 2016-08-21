@@ -49,6 +49,7 @@
       {"date":"2016-08-21",   "time":"08:00"}
     ]
   }
+  alarms ={"regular":[{"time":"04:30","dow":"12345"},{"time":"08:00","dow":"67"},{"time":"19:00","dow":"6"}],"exceptions":[{"time":"08:00","dow":"","date":"2016-08-21"}],"special":[{"time":"21:05","dow":"","date":"2016-08-20"}]}
   </script>
 
 <div id="layout">
@@ -70,7 +71,7 @@
   <div id="alarms-submit" class="alarm-section">
     <h3>prepare json</h3>
     <button class="pure-button pure-button-primary">remove old rules</button> &nbsp;
-    <button class="pure-button pure-button-primary">dump to json</button>
+    <button class="pure-button pure-button-primary" onClick="dumpToJson()">dump to json</button>
 
     <h3>target json file</h3>
     <textarea id="raw-json" rows=10 class="pure-input-1-2" placeholder="contents of alarms.json should be here"></textarea>
@@ -147,7 +148,38 @@ function parseInputJson(){
   });
 
 }
+function dumpToJson(){
+    var response = {"regular":[],"exceptions":[],"special":[]};
 
+    var id = 0;
+    $("#alarms-regular .alarm-entry").each(function(id,item){
+      var rule = {"time":"","dow":""}
+      rule.time  = $(this).children(".time").children("input")[0].value;
+      rule.dow   = "";
+      for (var i=0; i<7; i++){
+        if ($(this).children(".dows").children("input")[i].checked) {
+          rule.dow += String(i+1);
+        }
+      }
+      response.regular[id++] = rule;
+    });
+    $("#alarms-special .alarm-entry").each(function(id,item){
+      var rule = {"time":"","dow":""}
+      rule.time  = $(this).children(".time").children("input")[0].value;
+      rule.date  = $(this).children(".date").children("input")[0].value;
+      response.special[id++] = rule;
+    });
+    $("#alarms-exceptions .alarm-entry").each(function(id,item){
+      var rule = {"time":"","dow":""}
+      rule.time  = $(this).children(".time").children("input")[0].value;
+      rule.date  = $(this).children(".date").children("input")[0].value;
+      response.exceptions[id++] = rule;
+    });
+
+
+    console.log (JSON.stringify(response))
+
+}
 $(function() {
   parseInputJson();
 });
