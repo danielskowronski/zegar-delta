@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>zegar-delta</title>
+
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <style>
+
+
+  </style>
+  <!--<![endif]-->
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
+  <![endif]-->
+
+</head>
+<body>
+  <style>
+    #layout{
+      padding: 15px;
+    }
+    #alarms-regular     h3 { background-color: rgba(30, 144, 255, 0.3); }
+    #alarms-special     h3 { background-color: rgba(124, 252, 0, 0.3); }
+    #alarms-exceptions  h3 { background-color: rgba(255, 165, 0, 0.3); }
+    #alarms-submit      h3 { background-color: rgba(47, 79, 79, 0.3); }
+
+    textarea {
+      width: 100%;
+    }
+  </style>
+  <script>
+  var alarms = {
+    "regular":  [
+      {"dow":"12345", "time":"04:30"},
+      {"dow":"67",    "time":"08:00"},
+      {"dow":"6" ,    "time":"19:00"}
+    ],
+    "special": [
+      {"date":"2016-08-20",   "time":"21:05"}
+    ],
+    "exceptions": [
+      {"date":"2016-08-21",   "time":"08:00"}
+    ]
+  }
+  </script>
+
+<div id="layout">
+  <h1>zegar-delta: alarms config</h1>
+
+  <div id="alarms-regular" class="alarm-section">
+    <h3>regular alarms</h3>
+  </div>
+  <div id="alarms-special" class="alarm-section">
+    <h3>special alarms</h3>
+  </div>
+  <div id="alarms-exceptions" class="alarm-section">
+    <h3>alarms exceptions</h3>
+  </div>
+
+  <div id="alarms-submit" class="alarm-section">
+    <h3>prepare json</h3>
+    <button class="pure-button pure-button-primary">remove old rules</button> &nbsp;
+    <button class="pure-button pure-button-primary">dump to json</button>
+
+    <h3>target json file</h3>
+    <textarea id="raw-json" rows=10 class="pure-input-1-2" placeholder="contents of alarms.json should be here"></textarea>
+
+    <h3>confirm save</h3>
+    <button class="pure-button pure-button-primary">confirm saving data to server</button>
+  </div>
+
+
+
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script>
+(function (window, document) {
+
+    var layout   = document.getElementById('layout'),
+        menu     = document.getElementById('menu'),
+        menuLink = document.getElementById('menuLink');
+
+    function toggleClass(element, className) {
+        var classes = element.className.split(/\s+/),
+            length = classes.length,
+            i = 0;
+
+        for(; i < length; i++) {
+          if (classes[i] === className) {
+            classes.splice(i, 1);
+            break;
+          }
+        }
+        // The className is not found
+        if (length === classes.length) {
+            classes.push(className);
+        }
+
+        element.className = classes.join(' ');
+    }
+
+    menuLink.onclick = function (e) {
+        var active = 'active';
+
+        e.preventDefault();
+        toggleClass(layout, active);
+        toggleClass(menu, active);
+        toggleClass(menuLink, active);
+    };
+
+}(this, this.document));
+</script>
+
+
+</body>
+</html>
