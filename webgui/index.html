@@ -56,52 +56,15 @@
 
   <div id="alarms-regular" class="alarm-section">
     <h3>regular alarms</h3>
-    <div class="alarm-entry weekly-rule" data-type="regular" data-id="1">
-      <div class="controls">
-        <button class="pure-button pure-button-primary">del</button>
-      </div>
-      <div class="dows">
-        days of week: &nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="1">monday</input>&nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="2">tuesday</input>&nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="3">wednesday</input>&nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="4">thursday</input>&nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="5">friday</input>&nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="6">saturday</input>&nbsp;
-        <input type="checkbox" data-field="dow" name="dow" value="7">sunday</input>&nbsp;
-      </div>
-      <div class="time">
-        time: <input type="text" data-field="time" value="4:35" />
-      </div>
-    </div>
+
   </div>
   <div id="alarms-special" class="alarm-section">
     <h3>special alarms</h3>
-    <div class="alarm-entry special-rule" data-type="special" data-id="1">
-      <div class="controls">
-        <button class="pure-button pure-button-primary">del</button>
-      </div>
-      <div class="date">
-        date: <input type="date" data-field="date" value="2016-08-20" />
-      </div>
-      <div class="time">
-        time: <input type="text" data-field="time" value="4:35" />
-      </div>
-    </div>
+
   </div>
   <div id="alarms-exceptions" class="alarm-section">
     <h3>alarms exceptions</h3>
-    <div class="alarm-entry exception-rule" data-type="exception" data-id="1">
-      <div class="controls">
-        <button class="pure-button pure-button-primary">del</button>
-      </div>
-      <div class="date">
-        date: <input type="date" data-field="date" value="2016-08-21" />
-      </div>
-      <div class="time">
-        time: <input type="text" data-field="time" value="4:35" />
-      </div>
-    </div>
+
   </div>
 
   <div id="alarms-submit" class="alarm-section">
@@ -123,7 +86,58 @@
 
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 <script>
+function contains(haystack, needle){
+  return haystack.indexOf(needle) >= 0;
+}
+function composeRegularRule(id,dow,time){
+  var response =
+  '<div class="alarm-entry weekly-rule" data-type="regular" data-id="'+id+'">'+
+  '  <div class="controls">'+
+  '    <button class="pure-button pure-button-primary">del</button>'+
+  '  </div>'+
+  '  <div class="dows">'+
+  '    <strong>days of week</strong>: &nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="1" '+(contains(dow,1)?'checked':'')+'>mon</input>&nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="2" '+(contains(dow,2)?'checked':'')+'>tue</input>&nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="3" '+(contains(dow,3)?'checked':'')+'>wed</input>&nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="4" '+(contains(dow,4)?'checked':'')+'>thu</input>&nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="5" '+(contains(dow,5)?'checked':'')+'>fri</input>&nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="6" '+(contains(dow,6)?'checked':'')+'>sat</input>&nbsp;'+
+  '    <input type="checkbox" data-field="dow" name="dow" value="7" '+(contains(dow,7)?'checked':'')+'>sun</input>&nbsp;'+
+  '  </div>'+
+  '  <div class="time">'+
+  '    <strong>time:</strong> <input type="text" data-field="time" value="'+time+'" />'+
+  '  </div>'+
+  '</div>';
+
+  return response;
+  //example: $("#alarms-regular").append(composeRegularRule(1,"1237","12:34"))
+}
+function composeSpecialRule(type,id,date,time){
+  var response =
+  '<div class="alarm-entry '+type+'-rule" data-type="'+type+'" data-id="'+id+'">'+
+  '  <div class="controls">'+
+  '    <button class="pure-button pure-button-primary">del</button>'+
+  '  </div>'+
+  '  <div class="date">'+
+  '    <strong>date:</strong> <input type="date" data-field="date" value="'+date+'" />'+
+  '  </div>'+
+  '  <div class="time">'+
+  '    <strong>time:</strong> <input type="text" data-field="time" value="'+time+'" />'+
+  '  </div>'+
+  '</div>';
+
+  return response;
+  //example: $("#alarms-special").append(composeSpecialRule("special", 1,"2016-08-31","12:34"))
+  //example: $("#alarms-exceptions").append(composeSpecialRule("exception", 1,"2016-08-31","12:34"))
+}
+
 $(function() {
+  $("#alarms-regular").append(composeRegularRule(1,"12345","4:35"))
+  $("#alarms-regular").append(composeRegularRule(2,"67","8:00"))
+  $("#alarms-special").append(composeSpecialRule("special", 1,"2016-08-30","12:34"))
+  $("#alarms-special").append(composeSpecialRule("special", 2,"2016-08-31","12:34"))
+  $("#alarms-exceptions").append(composeSpecialRule("exception", 1,"2016-08-26","4:35"))
 
 });
 </script>
