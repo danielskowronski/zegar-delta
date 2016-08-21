@@ -94,7 +94,7 @@ function composeRegularRule(id,dow,time){
   var response =
   '<div class="alarm-entry weekly-rule" data-type="regular" data-id="'+id+'">'+
   '  <div class="controls">'+
-  '    <button class="pure-button pure-button-primary">del</button>'+
+  '    <button class="pure-button pure-button-primary" onClick="deleteRule(\'regular-'+id+'\')">del</button>'+
   '  </div>'+
   '  <div class="dows">'+
   '    <strong>days of week</strong>: &nbsp;'+
@@ -118,7 +118,7 @@ function composeSpecialRule(type,id,date,time){
   var response =
   '<div class="alarm-entry '+type+'-rule" data-type="'+type+'" data-id="'+id+'">'+
   '  <div class="controls">'+
-  '    <button class="pure-button pure-button-primary">del</button>'+
+  '    <button class="pure-button pure-button-primary" onClick="deleteRule(\''+type+'-'+id+'\')">del</button>'+
   '  </div>'+
   '  <div class="date">'+
   '    <strong>date:</strong> <input type="date" data-field="date" value="'+date+'" />'+
@@ -180,6 +180,13 @@ function dumpToJson(){
     console.log (JSON.stringify(response))
 
 }
+
+function deleteRule(id){
+  if (confirm("Are you sure you want to delete this rule?")){
+    $("#alarms-"+id.split('-')[0]).children(".alarm-entry[data-id='"+id.split('-')[1]+"']").remove()
+  }
+}
+
 $(function() {
   parseInputJson();
 });
