@@ -132,13 +132,24 @@ function composeSpecialRule(type,id,date,time){
   //example: $("#alarms-exceptions").append(composeSpecialRule("exception", 1,"2016-08-31","12:34"))
 }
 
-$(function() {
-  $("#alarms-regular").append(composeRegularRule(1,"12345","4:35"))
-  $("#alarms-regular").append(composeRegularRule(2,"67","8:00"))
-  $("#alarms-special").append(composeSpecialRule("special", 1,"2016-08-30","12:34"))
-  $("#alarms-special").append(composeSpecialRule("special", 2,"2016-08-31","12:34"))
-  $("#alarms-exceptions").append(composeSpecialRule("exception", 1,"2016-08-26","4:35"))
+function parseInputJson(){
+  var i = 0;
+  alarms.regular.forEach(function(item){
+      $("#alarms-regular").append(composeRegularRule(i++,item.dow,item.time))
+  });
+  i=0;
+  alarms.special.forEach(function(item){
+      $("#alarms-special").append(composeSpecialRule("special",i++,item.date,item.time))
+  });
+  i=0;
+  alarms.exceptions.forEach(function(item){
+      $("#alarms-exceptions").append(composeSpecialRule("exception",i++,item.date,item.time))
+  });
 
+}
+
+$(function() {
+  parseInputJson();
 });
 </script>
 <script>
