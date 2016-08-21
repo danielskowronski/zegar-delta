@@ -7,10 +7,7 @@
   <title>zegar-delta</title>
 
   <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
-  <style>
 
-
-  </style>
   <!--<![endif]-->
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
@@ -64,7 +61,7 @@
             "date": "2016-08-20"
         }
     ]
-}
+  }
   </script>
 
 <div id="layout">
@@ -72,15 +69,15 @@
 
   <div id="alarms-regular" class="alarm-section">
     <h3>regular alarms</h3>
-
+    <button class="pure-button pure-button-primary" onClick="addRule('regular')">add</button>
   </div>
   <div id="alarms-special" class="alarm-section">
     <h3>special alarms</h3>
-
+    <button class="pure-button pure-button-primary" onClick="addRule('special')">add</button>
   </div>
   <div id="alarms-exceptions" class="alarm-section">
     <h3>alarms exceptions</h3>
-
+    <button class="pure-button pure-button-primary" onClick="addRule('exceptions')">add</button>
   </div>
 
   <div id="alarms-submit" class="alarm-section">
@@ -102,9 +99,23 @@
 
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 <script>
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
 function contains(haystack, needle){
   return haystack.indexOf(needle) >= 0;
 }
+function today(){
+  var today = new Date();
+  var now =
+    today.getFullYear()+"-"+
+    pad(today.getMonth()+1,2)+"-"+
+    pad(today.getDate(),2);
+  return now;
+}
+
 function composeRegularRule(id,dow,time){
   var response =
   '<div class="alarm-entry weekly-rule" data-type="regular" data-id="'+id+'">'+
@@ -200,12 +211,9 @@ function deleteRule(id, userConfirm=true){
   }
 }
 function parseRuleToDelete(id,item){
-  var today = new Date();
-  var now = today.getFullYear()+"-"+(today.getMonth()+1)+"-"+today.getDate();
-
   var id =  $(this).attr("data-id");
   var date = $(this).children(".date").children("input")[0].value;
-  if (date<now) {
+  if (date<today()) {
     deleteRule("special-"+id, false);
   }
 }
@@ -213,6 +221,22 @@ function removeOldRules(){
   $("#alarms-special .alarm-entry").each(parseRuleToDelete);
   $("#alarms-exceptions .alarm-entry").each(parseRuleToDelete);
 }
+function addRule(type){
+  if (type=="regular"){
+    $("#alarms-regular").append(composeRegularRule(
+      $("#alarms-regular").children(".alarm-entry").length,
+      "","7:00")
+    )
+  }
+  else {
+    $("#alarms-"+type).append(composeSpecialRule(
+      type,
+      $("#alarms-"+type).children(".alarm-entry").length,
+      today(), "7:00")
+    )
+  }
+}
+
 
 $(function() {
   parseInputJson();
