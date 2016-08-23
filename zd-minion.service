@@ -1,9 +1,9 @@
 [Unit]
-Description=Budzik - zegar-delta
+Description=zegar-delta/budzik-worker
 
 [Service]
 Type=simple
-ExecStart=/opt/budzik/budzik-worker.rb
+ExecStart=/opt/zd/minion/minion.rb
 Restart=always
 
 [Install]

@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+gem 'lircr'
+gem 'pi_piper'
+gem 'i2c'
+gem 'rack'

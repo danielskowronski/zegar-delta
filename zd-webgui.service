@@ -1,0 +1,11 @@
+[Unit]
+Description=zegar-delta/webgui
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rackup -o 0.0.0.0 -p 80 /opt/zd/webgui/webgui.ru
+Restart=always
+KillSignal=SIGKILL
+
+[Install]
+WantedBy=multi-user.target

@@ -33,35 +33,7 @@
     .date input { width: 6em;}
   </style>
   <script>
-  var alarms =
-  {
-    "regular": [
-        {
-            "time": "04:30",
-            "dow": "12345"
-        },
-        {
-            "time": "08:00",
-            "dow": "67"
-        },
-        {
-            "time": "19:00",
-            "dow": "6"
-        }
-    ],
-    "exceptions": [
-        {
-            "time": "08:00",
-            "date": "2016-08-21"
-        }
-    ],
-    "special": [
-        {
-            "time": "21:05",
-            "date": "2016-08-20"
-        }
-    ]
-  }
+  var alarms = {REPLACE_ME};
   </script>
 
 <div id="layout">
@@ -89,7 +61,7 @@
     <textarea id="raw-json" rows=10 class="pure-input-1-2" placeholder="contents of alarms.json should be here"></textarea>
 
     <h3>confirm save</h3>
-    <button class="pure-button pure-button-primary">confirm saving data to server</button>
+    <button class="pure-button pure-button-primary" onClick="postConfig()">confirm saving data to server</button>
   </div>
 
 
@@ -138,7 +110,6 @@ function composeRegularRule(id,dow,time){
   '</div>';
 
   return response;
-  //example: $("#alarms-regular").append(composeRegularRule(1,"1237","12:34"))
 }
 function composeSpecialRule(type,id,date,time){
   var response =
@@ -155,8 +126,6 @@ function composeSpecialRule(type,id,date,time){
   '</div>';
 
   return response;
-  //example: $("#alarms-special").append(composeSpecialRule("special", 1,"2016-08-31","12:34"))
-  //example: $("#alarms-exceptions").append(composeSpecialRule("exception", 1,"2016-08-31","12:34"))
 }
 
 function parseInputJson(){
@@ -214,7 +183,7 @@ function parseRuleToDelete(id,item){
   var id =  $(this).attr("data-id");
   var date = $(this).children(".date").children("input")[0].value;
   if (date<today()) {
-    deleteRule("special-"+id, false);
+    $(this).remove()
   }
 }
 function removeOldRules(){
@@ -237,6 +206,25 @@ function addRule(type){
   }
 }
 
+function postConfig(){
+  if ($("textarea").val()=="") {
+    alert("data cannot be empty")
+    return
+  }
+  $.post(
+    "/alarms/post",
+    {"data": $("textarea").val() },
+    "json")
+    .done(function(data) {
+      if (data.state=="success") {
+        alert("success")
+        window.location.reload(false);
+      }
+      else {
+        alert ("failed with reason:\n"+data.message)
+      }
+    });
+}
 
 $(function() {
   parseInputJson();

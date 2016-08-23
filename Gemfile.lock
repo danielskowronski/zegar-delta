@@ -1,0 +1,23 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    eventmachine (1.0.9)
+    ffi (1.9.14)
+    i2c (0.4.0)
+    lircr (0.0.3)
+    pi_piper (2.0.0)
+      eventmachine (= 1.0.9)
+      ffi
+    rack (2.0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  i2c
+  lircr
+  pi_piper
+  rack
+
+BUNDLED WITH
+   1.12.5
