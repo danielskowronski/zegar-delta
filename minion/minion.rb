@@ -3,18 +3,24 @@ require 'rubygems'
 require 'i2c'
 require 'json'
 require 'lirc'
+require 'socket'
 require 'pi_piper'
 include PiPiper
 require  File.dirname(__FILE__)+'/lib/lcd.rb'
-require 'socket'
+
+VER="0.4"
+$ENGMODE=false
 
 $configFile =File.dirname(__FILE__)+'/alarms.json'
-
 $lcd = Lcd.new
 $buzzer = PiPiper::Pwm.new pin: 18
 $lirc = LIRC::Client.new
 $time = Time.new
 $last_alarm = ""
+$last_hashum = "null"
+$error_count = 0
+$current_second_line_id = 0
+$current_remote433_status = 0
 
 def display_long_message(text, line, timeout)
   $lcd.writeln(text[0,16],line )
@@ -25,7 +31,6 @@ def display_long_message(text, line, timeout)
      sleep(timeout)
   end
 end
-
 def get_ip
   `ifconfig | grep "inet" | awk '{print $2}' | grep -v "127.0.0.1" | grep -v "::" | tac | head -n 1  | gip`.strip+"                   "
 end
@@ -35,7 +40,13 @@ def dow_matches(definition, current)
   definition.split("").each do |elem|
     if (elem.to_i%7) == (current.to_i%7) then matches=true end
   end
-  return matches
+  matches
+end
+def time_matches(definition, current)
+  matches = false
+  if definition == current then matches=true end
+  if "0"+definition == current then matches=true end
+  matches
 end
 def should_enable_alarm
   $time = Time.new
@@ -48,35 +59,76 @@ def should_enable_alarm
 
   should_enable = false
   alarms["regular"].each do |alarm|
-    if dow_matches(alarm["dow"],curr_dow) && alarm["time"] == curr_time
+    if dow_matches(alarm["dow"],curr_dow) && time_matches(alarm["time"],curr_time)
       should_enable = true
     end
   end
 
   alarms["special"].each do |alarm|
-    if alarm["date"] == curr_date && alarm["time"] == curr_time
+    if alarm["date"] == curr_date && time_matches(alarm["time"],curr_time)
       should_enable = true
     end
   end
 
   alarms["exceptions"].each do |alarm|
-    if alarm["date"] == curr_date && alarm["time"] == curr_time
+    if alarm["date"] == curr_date && time_matches(alarm["time"],curr_time)
       should_enable = false
     end
   end
 
   return should_enable
 end
+def remote433
+  begin
+    Timeout::timeout(0.1) do
+      event = $lirc.next
+      event = $lirc.next while !event.repeat?
+      if event.name == "KEY_EQUAL"
+        if $current_remote433_status==0
+          $current_remote433_status=1
+          print "AUDIT 433MHz command: "+`send433 11111 3 1`
+        else
+          $current_remote433_status=0
+          print "AUDIT 433MHz command: "+`send433 11111 3 0`
+        end
+      end
+    end
+  rescue Timeout::Error
+  end
+end
+def second_line
+  begin
+    Timeout::timeout(0.1) do
+      event = $lirc.next
+      event = $lirc.next while !event.repeat?
+      if event.name == "KEY_FORWARD"
+        $current_second_line_id = $current_second_line_id+1
+        if $current_second_line_id>3 then $current_second_line_id=0 end
+      elsif event.name == "KEY_PREVIOUS"
+        $current_second_line_id = $current_second_line_id-1
+        if $current_second_line_id<0 then $current_second_line_id=3 end
+      end
+    end
+  rescue Timeout::Error
+  end
+
+     if $current_second_line_id==0 then return get_ip
+  elsif $current_second_line_id==1 then return `echo -n "mem free: "; free -h | head -2 | tail -1  | awk '{print $4}'`.strip+"                   "
+  elsif $current_second_line_id==2 then return `vcgencmd measure_temp`.strip+"                   "
+  elsif $current_second_line_id==3 then return `vcgencmd measure_volts`.strip+"                   "
+  else return "dupa------------------------------------" end
+end
 def show_clock
   $lcd.writeln($time.strftime("%H:%M:%S   %d/%m"), 0)
-  $lcd.writeln(get_ip, 1)
-  # above gets all iface IPs, removes lo and reverses (so wlan shound be before eth)
+  $lcd.writeln(second_line, 1)
 end
 def enable_alarm
   snooze_active = false #TODO
 
   curr_time = $time.strftime("%H:%M")
   curr_date = $time.strftime("%Y-%m-%d")
+
+  print "AUDIT Started alarm procedure for #{curr_time}\n"
 
   # prevents reactivation of alarm after being disabled in less than 1 minute window
   if $last_alarm==curr_date+"_"+curr_time then return end
@@ -95,6 +147,8 @@ def enable_alarm
     $buzzer.value = val
     $lcd.writeln("PIN   -- "+pin_disp, 1)
 
+    try_count=0
+
     begin
       Timeout::timeout(0.1) do
         event = $lirc.next
@@ -105,6 +159,7 @@ def enable_alarm
         else
           pin_pos_next=0
           pin_disp=pin
+          try_count+=1
         end
       end
     rescue Timeout::Error
@@ -112,6 +167,7 @@ def enable_alarm
 
     if pin_pos_next >= 6
       $buzzer.value = 0
+      print "AUDIT Alarm successfully disabled by user; try_count=#{try_count}\n"
       return
     end
   end
@@ -126,17 +182,43 @@ def worker
       show_clock
     end
   rescue Exception => ex
+    if $ENGMODE then raise ex end #negineering mode
+
     $buzzer.value = 0.5
     $lcd.writeln("! worker crashed",0 )
     display_long_message("#{ex.class} - #{ex.message}",1,0.2)
+    print "CRASH #{ex.class} - #{ex.message} \n"
+
+    $error_count+=1
+    if $error_count > 2 then raise ex end
+  end
+end
+def audit_alarms
+  curr_hashsum = `sha256sum #{$configFile}`.strip
+  if curr_hashsum!=$last_hashum
+    print "AUDIT Hashsum changed: #{$last_hashum} -> #{curr_hashsum} \n"
+    file = File.open($configFile, "r")
+    print "AUDIT Current file: "+JSON.generate(JSON.parse(file.read))+"\n"
+    $last_hashum=curr_hashsum
   end
 end
 
-$lcd.writeln("zegar-delta v0.2",0)
-$lcd.writeln(get_ip,1 )
-sleep(5)
+$time = Time.new
+print "=======================================================================================================\n"
+print "INFO  Minion version #{VER} started at #{$time.strftime('%Y-%m-%d %H:%M')} with best IP #{get_ip}\n"
+
+$lcd.writeln("zegar-delta #{VER}",0)
+if !$ENGMODE then
+  $buzzer.value = 0.5
+  $lcd.writeln("zegar-delta #{VER}",0)
+  $lcd.writeln(get_ip, 1)
+  sleep(3)
+  $buzzer.value = 0
+end
 
 while true
+  audit_alarms
+  remote433
   worker
   sleep(0.25)
 end
