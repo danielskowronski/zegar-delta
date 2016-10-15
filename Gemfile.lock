@@ -9,6 +9,7 @@ GEM
       eventmachine (= 1.0.9)
       ffi
     rack (2.0.1)
+    w1temp (0.0.4)
 
 PLATFORMS
   ruby
@@ -18,6 +19,7 @@ DEPENDENCIES
   lircr
   pi_piper
   rack
+  w1temp
 
 BUNDLED WITH
    1.12.5

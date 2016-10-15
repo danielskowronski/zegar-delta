@@ -21,7 +21,7 @@
     }
     #alarms-regular     h3 { background-color: rgba(30, 144, 255, 0.3); }
     #alarms-special     h3 { background-color: rgba(124, 252, 0, 0.3); }
-    #alarms-exceptions  h3 { background-color: rgba(255, 165, 0, 0.3); }
+    #alarms-exception   h3 { background-color: rgba(255, 165, 0, 0.3); }
     #alarms-submit      h3 { background-color: rgba(47, 79, 79, 0.3); }
 
     textarea {
@@ -47,9 +47,9 @@
     <h3>special alarms</h3>
     <button class="pure-button pure-button-primary" onClick="addRule('special')">add</button>
   </div>
-  <div id="alarms-exceptions" class="alarm-section">
+  <div id="alarms-exception" class="alarm-section">
     <h3>alarms exceptions</h3>
-    <button class="pure-button pure-button-primary" onClick="addRule('exceptions')">add</button>
+    <button class="pure-button pure-button-primary" onClick="addRule('exception')">add</button>
   </div>
 
   <div id="alarms-submit" class="alarm-section">
@@ -139,7 +139,7 @@ function parseInputJson(){
   });
   i=0;
   alarms.exceptions.forEach(function(item){
-      $("#alarms-exceptions").append(composeSpecialRule("exception",i++,item.date,item.time))
+      $("#alarms-exception").append(composeSpecialRule("exception",i++,item.date,item.time))
   });
 
 }
@@ -164,7 +164,7 @@ function dumpToJson(){
       rule.date  = $(this).children(".date").children("input")[0].value;
       response.special[id++] = rule;
     });
-    $("#alarms-exceptions .alarm-entry").each(function(id,item){
+    $("#alarms-exception .alarm-entry").each(function(id,item){
       var rule = {"time":"", "date":""}
       rule.time  = $(this).children(".time").children("input")[0].value;
       rule.date  = $(this).children(".date").children("input")[0].value;
@@ -188,7 +188,7 @@ function parseRuleToDelete(id,item){
 }
 function removeOldRules(){
   $("#alarms-special .alarm-entry").each(parseRuleToDelete);
-  $("#alarms-exceptions .alarm-entry").each(parseRuleToDelete);
+  $("#alarms-exception .alarm-entry").each(parseRuleToDelete);
 }
 function addRule(type){
   if (type=="regular"){
@@ -231,7 +231,7 @@ $(function() {
 });
 </script>
 <script>
-(function (window, document) {
+/*(function (window, document) {
 
     var layout   = document.getElementById('layout'),
         menu     = document.getElementById('menu'),
@@ -265,7 +265,7 @@ $(function() {
         toggleClass(menuLink, active);
     };
 
-}(this, this.document));
+}(this, this.document));*/
 </script>
 
 
