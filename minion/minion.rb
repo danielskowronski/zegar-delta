@@ -4,11 +4,12 @@ require 'i2c'
 require 'json'
 require 'lirc'
 require 'socket'
+require 'w1temp'
 require 'pi_piper'
 include PiPiper
 require  File.dirname(__FILE__)+'/lib/lcd.rb'
 
-VER="0.4"
+VER="0.5"
 $ENGMODE=false
 
 $configFile =File.dirname(__FILE__)+'/alarms.json'
@@ -112,10 +113,10 @@ def second_line
   rescue Timeout::Error
   end
 
-     if $current_second_line_id==0 then return get_ip
+     if $current_second_line_id==0 then return "T_ext = "+Temperature.new.reading.round(1).to_s+"'C                   "
   elsif $current_second_line_id==1 then return `echo -n "mem free: "; free -h | head -2 | tail -1  | awk '{print $4}'`.strip+"                   "
-  elsif $current_second_line_id==2 then return `vcgencmd measure_temp`.strip+"                   "
-  elsif $current_second_line_id==3 then return `vcgencmd measure_volts`.strip+"                   "
+  elsif $current_second_line_id==2 then return "cpu "+`vcgencmd measure_temp`.strip+"                   "
+  elsif $current_second_line_id==3 then return  get_ip
   else return "dupa------------------------------------" end
 end
 def show_clock
