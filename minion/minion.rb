@@ -9,8 +9,8 @@ require 'pi_piper'
 include PiPiper
 require  File.dirname(__FILE__)+'/lib/lcd.rb'
 
-VER="0.5"
-$ENGMODE=false
+VER="0.6"
+$ENGMODE=true
 
 $configFile =File.dirname(__FILE__)+'/alarms.json'
 $lcd = Lcd.new
@@ -79,39 +79,9 @@ def should_enable_alarm
 
   return should_enable
 end
-def remote433
-  begin
-    Timeout::timeout(0.1) do
-      event = $lirc.next
-      event = $lirc.next while !event.repeat?
-      if event.name == "KEY_EQUAL"
-        if $current_remote433_status==0
-          $current_remote433_status=1
-          print "AUDIT 433MHz command: "+`send433 11111 3 1`
-        else
-          $current_remote433_status=0
-          print "AUDIT 433MHz command: "+`send433 11111 3 0`
-        end
-      end
-    end
-  rescue Timeout::Error
-  end
-end
+
 def second_line
-  begin
-    Timeout::timeout(0.1) do
-      event = $lirc.next
-      event = $lirc.next while !event.repeat?
-      if event.name == "KEY_FORWARD"
-        $current_second_line_id = $current_second_line_id+1
-        if $current_second_line_id>3 then $current_second_line_id=0 end
-      elsif event.name == "KEY_PREVIOUS"
-        $current_second_line_id = $current_second_line_id-1
-        if $current_second_line_id<0 then $current_second_line_id=3 end
-      end
-    end
-  rescue Timeout::Error
-  end
+
 
      if $current_second_line_id==0 then return "na polu "+Temperature.new.reading.round(1).to_s+"'C                   "
   elsif $current_second_line_id==1 then return `echo -n "mem free: "; free -h | head -2 | tail -1  | awk '{print $4}'`.strip+"                   "
@@ -122,6 +92,10 @@ end
 def show_clock
   $lcd.writeln($time.strftime("%H:%M:%S   %d/%m"), 0)
   $lcd.writeln(second_line, 1)
+end
+
+def eshould_enable_snooze
+
 end
 def enable_alarm
   snooze_active = false #TODO
@@ -218,9 +192,44 @@ if !$ENGMODE then
   $buzzer.value = 0
 end
 
+#key = get_ir_key
+#if key == "KEY_FORWARD"
+#  $current_second_line_id = $current_second_line_id+1
+#  if $current_second_line_id>3 then $current_second_line_id=0 end
+#elsif key == "KEY_PREVIOUS"
+#  $current_second_line_id = $current_second_line_id-1
+#  if $current_second_line_id<0 then $current_second_line_id=3 end
+#end
+
+thr = Thread.new do
+  $lirc.each do |event|
+    if !event.repeat? then next end
+    
+    if $ENGMODE then print "DEBUG IR: "+event.name+"\n" end
+
+    if event.name=="KEY_FORWARD"
+      $current_second_line_id = $current_second_line_id+1
+      if $current_second_line_id>3 then $current_second_line_id=0 end
+    elsif event.name == "KEY_PREVIOUS"
+      $current_second_line_id = $current_second_line_id-1
+      if $current_second_line_id<0 then $current_second_line_id=3 end
+    elsif event.name == "KEY_EQUAL"
+      if $current_remote433_status==0
+        $current_remote433_status=1
+        print "AUDIT 433MHz command: "+`send433 11111 3 1`
+      else
+        $current_remote433_status=0
+        print "AUDIT 433MHz command: "+`send433 11111 3 0`
+      end
+    end
+  end
+end
+
+
 while true
   audit_alarms
-  remote433
   worker
-  sleep(0.25)
+  sleep(0.05)
 end
+
+thr.raise "stop"
