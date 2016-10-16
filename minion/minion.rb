@@ -22,6 +22,7 @@ $last_hashum = "null"
 $error_count = 0
 $current_second_line_id = 0
 $current_remote433_status = 0
+$last_ir_command = "null"
 
 def display_long_message(text, line, timeout)
   $lcd.writeln(text[0,16],line )
@@ -50,6 +51,7 @@ def time_matches(definition, current)
   matches
 end
 def should_enable_alarm
+  return true
   $time = Time.new
   curr_date = $time.strftime("%Y-%m-%d")
   curr_time = $time.strftime("%H:%M")
@@ -81,8 +83,6 @@ def should_enable_alarm
 end
 
 def second_line
-
-
      if $current_second_line_id==0 then return "na polu "+Temperature.new.reading.round(1).to_s+"'C                   "
   elsif $current_second_line_id==1 then return `echo -n "mem free: "; free -h | head -2 | tail -1  | awk '{print $4}'`.strip+"                   "
   elsif $current_second_line_id==2 then return "cpu "+`vcgencmd measure_temp`.strip+"                   "
@@ -94,12 +94,7 @@ def show_clock
   $lcd.writeln(second_line, 1)
 end
 
-def eshould_enable_snooze
-
-end
 def enable_alarm
-  snooze_active = false #TODO
-
   curr_time = $time.strftime("%H:%M")
   curr_date = $time.strftime("%Y-%m-%d")
 
@@ -109,7 +104,7 @@ def enable_alarm
   if $last_alarm==curr_date+"_"+curr_time then return end
   $last_alarm=curr_date+"_"+curr_time
 
-  $lcd.writeln("ALARM -- "+curr_time, 0)
+  $lcd.writeln("ALARM  -- "+$time.strftime("%H:%M")+"        ", 0)
 
   val = 0.01
   pin = rand(100000..999999).to_s
@@ -120,25 +115,41 @@ def enable_alarm
     val += 0.01
     if val > 1.2 then val=0.01 end
     $buzzer.value = val
-    $lcd.writeln("PIN   -- "+pin_disp, 1)
+    $lcd.writeln("PIN    -- "+pin_disp, 1)
 
     try_count=0
+    this_iter_ir = $last_ir_command
 
-    begin
-      Timeout::timeout(0.1) do
-        event = $lirc.next
-        event = $lirc.next while !event.repeat?
-        if event.name == "KEY_NUMERIC_"+pin[pin_pos_next]
-          pin_disp[pin_pos_next]="#"
-          pin_pos_next = pin_pos_next+1
-        else
-          pin_pos_next=0
-          pin_disp=pin
-          try_count+=1
-        end
+    if this_iter_ir.index("KEY_CHANNEL")==0
+      snooze_countdown = 9*60*1000 #9 minutes
+      $buzzer.value = 0
+      while snooze_countdown>0
+        snooze_display = ""+(snooze_countdown/60000).to_s+"m "+((snooze_countdown%60000)/1000).to_s+"s"+"              "
+        thr = Thread.new {
+          $lcd.writeln("SNOOZE -- "+snooze_display+"   ", 1)
+        }
+        sleep(0.2)
+        snooze_countdown-=200
       end
-    rescue Timeout::Error
+
+      # command was not changed during snooze
+      if this_iter_ir==$last_ir_command then  $last_ir_command = "null" end
+
     end
+
+    sleep (0.2)
+
+    if this_iter_ir == "KEY_NUMERIC_"+pin[pin_pos_next]
+      pin_disp[pin_pos_next]="#"
+      pin_pos_next = pin_pos_next+1
+    elsif this_iter_ir != "null"
+      pin_pos_next=0
+      pin_disp=pin.dup
+      try_count+=1
+    end
+
+    # command was not changed during parsing
+    if this_iter_ir==$last_ir_command then  $last_ir_command = "null" end
 
     if pin_pos_next >= 6
       $buzzer.value = 0
@@ -192,19 +203,11 @@ if !$ENGMODE then
   $buzzer.value = 0
 end
 
-#key = get_ir_key
-#if key == "KEY_FORWARD"
-#  $current_second_line_id = $current_second_line_id+1
-#  if $current_second_line_id>3 then $current_second_line_id=0 end
-#elsif key == "KEY_PREVIOUS"
-#  $current_second_line_id = $current_second_line_id-1
-#  if $current_second_line_id<0 then $current_second_line_id=3 end
-#end
-
 thr = Thread.new do
   $lirc.each do |event|
-    if !event.repeat? then next end
-    
+   if event.repeat? then next end
+   $last_ir_command = event.name
+
     if $ENGMODE then print "DEBUG IR: "+event.name+"\n" end
 
     if event.name=="KEY_FORWARD"
