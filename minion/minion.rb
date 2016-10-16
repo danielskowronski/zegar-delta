@@ -113,7 +113,7 @@ def second_line
   rescue Timeout::Error
   end
 
-     if $current_second_line_id==0 then return "T_ext = "+Temperature.new.reading.round(1).to_s+"'C                   "
+     if $current_second_line_id==0 then return "na polu "+Temperature.new.reading.round(1).to_s+"'C                   "
   elsif $current_second_line_id==1 then return `echo -n "mem free: "; free -h | head -2 | tail -1  | awk '{print $4}'`.strip+"                   "
   elsif $current_second_line_id==2 then return "cpu "+`vcgencmd measure_temp`.strip+"                   "
   elsif $current_second_line_id==3 then return  get_ip
@@ -183,7 +183,8 @@ def worker
       show_clock
     end
   rescue Exception => ex
-    if $ENGMODE then raise ex end #negineering mode
+    if $ENGMODE then raise ex end #engineering mode
+    if ex.message == "SIGTERM" then raise ex end #handle normal exit / service stop
 
     $buzzer.value = 0.5
     $lcd.writeln("! worker crashed",0 )
